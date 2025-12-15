@@ -297,12 +297,13 @@ async function loadYAMLProfile(region, category, file) {
     const yamlText = await fetchText(file.download_url);
     const data = jsyaml.load(yamlText);
 
-    const profile = createProfileObject(data);
-
     const container = document.getElementById("product-label");
     container.innerHTML = "";
-    container.appendChild(renderNutritionLabel(profile, 1, false));
+
+    const card = renderProductCard(data);
+    container.appendChild(card);
 }
+
 
 
 async function fetchJSON(url) {
@@ -338,6 +339,100 @@ function loadSampleFood() {
     addFoodToMenu(sampleFood);
     hasSampleItem = true; // Mark that we have a sample item
 }
+
+function renderProductCard(data) {
+    const card = document.createElement("div");
+    card.className = "product-card";
+
+    /* ---------- Header ---------- */
+    const title = document.createElement("h2");
+    title.textContent =
+        data.product_name ||
+        data.name ||
+        "Unnamed Product";
+    card.appendChild(title);
+
+    /* ---------- Headline Metrics ---------- */
+    const metrics = document.createElement("div");
+    metrics.className = "product-metrics";
+
+    if (data.gwp) {
+        metrics.innerHTML += `
+            <div class="metric">
+                <strong>GWP</strong>
+                <span>${data.gwp} kg CO₂e</span>
+            </div>
+        `;
+    }
+
+    if (data.uncertainty_adjusted_gwp) {
+        metrics.innerHTML += `
+            <div class="metric">
+                <strong>Adj. GWP</strong>
+                <span>${data.uncertainty_adjusted_gwp} kg CO₂e</span>
+            </div>
+        `;
+    }
+
+    if (data.declared_unit) {
+        metrics.innerHTML += `
+            <div class="metric">
+                <strong>Declared Unit</strong>
+                <span>${data.declared_unit}</span>
+            </div>
+        `;
+    }
+
+    card.appendChild(metrics);
+
+    /* ---------- Dates ---------- */
+    if (data.date_of_issue || data.valid_until) {
+        const dates = document.createElement("div");
+        dates.className = "product-dates";
+
+        if (data.date_of_issue) {
+            dates.innerHTML += `<div><strong>Issued:</strong> ${new Date(data.date_of_issue).toLocaleDateString()}</div>`;
+        }
+
+        if (data.valid_until) {
+            dates.innerHTML += `<div><strong>Valid Until:</strong> ${new Date(data.valid_until).toLocaleDateString()}</div>`;
+        }
+
+        card.appendChild(dates);
+    }
+
+    /* ---------- Compliance ---------- */
+    if (Array.isArray(data.compliance) && data.compliance.length) {
+        const comp = document.createElement("div");
+        comp.className = "product-compliance";
+        comp.innerHTML = `<h3>Compliance</h3>`;
+
+        data.compliance.forEach(c => {
+            const row = document.createElement("div");
+            row.textContent = c;
+            comp.appendChild(row);
+        });
+
+        card.appendChild(comp);
+    }
+
+    /* ---------- Metadata (Full YAML) ---------- */
+    const meta = document.createElement("details");
+    meta.open = false;
+
+    const summary = document.createElement("summary");
+    summary.textContent = "Full Product Data";
+    meta.appendChild(summary);
+
+    const yamlContainer = document.createElement("div");
+    formatYamlLabel(data, yamlContainer);
+    meta.appendChild(yamlContainer);
+
+    card.appendChild(meta);
+
+    return card;
+}
+
 
 function addUSDASearchBar() {
     let searchDiv = document.getElementById("usda-search-div");
@@ -1008,6 +1103,8 @@ function updateNutritionLabel(quantity) {
     });
     populateNutritionLabel(updatedData);
 }
+
+
 
 // Parse the source data into the desired structure
 let profileObject = {};
