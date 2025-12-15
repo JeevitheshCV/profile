@@ -127,6 +127,7 @@ function loadMenu() {
     loadFoodCategorySidebar();
     loadSampleFood();
     displayInitialFoodItems();
+    window.loadMenu = loadMenu;
 }
 
 const FOOD_CATEGORIES = [
