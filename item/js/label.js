@@ -41,7 +41,8 @@ document.addEventListener("DOMContentLoaded", loadMenu);
 
 // function loadProductList() {
 //     const csvUrl = "https://raw.githubusercontent.com/Sirishaupadhyayula/products-data/refs/heads/main/IN.csv";
-//     const container = document.getElementById("product-container");
+//     const nav = document.getElementById("product-nav");
+    // const view = document.getElementById("product-view");
 
 //     if (container) {
 //         container.innerHTML = "<h3>Loading products...</h3>";
@@ -247,63 +248,72 @@ function displayCategoryResults(categoryName) {
 const API_BASE = "https://api.github.com/repos/ModelEarth/products-data/contents";
 
 async function loadProductList() {
-    const container = document.getElementById("product-container");
-    if (!container) return;
+    const nav = document.getElementById("product-nav");
+    if (!nav) return;
 
-    container.innerHTML = "<h3>Loading regions...</h3>";
+    nav.innerHTML = "<h3>Regions</h3>";
 
     const regions = await fetchJSON(API_BASE);
-    container.innerHTML = "";
 
-    regions.filter(x => x.type === "dir").forEach(region => {
+    regions
+      .filter(x => x.type === "dir")
+      .forEach(region => {
         const div = document.createElement("div");
-        div.classList.add("region-row");
+        div.className = "region-row";
         div.textContent = region.name;
         div.onclick = () => loadCategories(region.name);
-        container.appendChild(div);
-    });
+        nav.appendChild(div);
+      });
 }
 
+
 async function loadCategories(region) {
-    const container = document.getElementById("product-container");
-    container.innerHTML = `<h3>${region}</h3>`;
+    const nav = document.getElementById("product-nav");
+
+    const header = document.createElement("h4");
+    header.textContent = region;
+    nav.appendChild(header);
 
     const categories = await fetchJSON(`${API_BASE}/${region}`);
 
-    categories.filter(x => x.type === "dir").forEach(cat => {
+    categories
+      .filter(x => x.type === "dir")
+      .forEach(cat => {
         const div = document.createElement("div");
-        div.classList.add("category-row");
+        div.className = "category-row";
         div.textContent = cat.name;
         div.onclick = () => loadItems(region, cat.name);
-        container.appendChild(div);
-    });
+        nav.appendChild(div);
+      });
 }
 
+
 async function loadItems(region, category) {
-    const container = document.getElementById("product-container");
-    container.innerHTML = `<h3>${region} / ${category}</h3>`;
+    const nav = document.getElementById("product-nav");
 
     const files = await fetchJSON(`${API_BASE}/${region}/${category}`);
 
-    files.filter(x => x.type === "file" && x.name.endsWith(".yaml")).forEach(file => {
+    files
+      .filter(x => x.type === "file" && x.name.endsWith(".yaml"))
+      .forEach(file => {
         const row = document.createElement("div");
-        row.classList.add("file-row");
+        row.className = "file-row";
         row.textContent = file.name.replace(".yaml", "");
         row.onclick = () => loadYAMLProfile(region, category, file);
-        container.appendChild(row);
-    });
+        nav.appendChild(row);
+      });
 }
+
 
 async function loadYAMLProfile(region, category, file) {
     const yamlText = await fetchText(file.download_url);
     const data = jsyaml.load(yamlText);
 
-    const container = document.getElementById("product-label");
-    container.innerHTML = "";
-
-    const card = renderProductCard(data);
-    container.appendChild(card);
+    const view = document.getElementById("product-view");
+    view.innerHTML = "";
+    view.appendChild(renderProductCard(data));
 }
+
 
 
 
