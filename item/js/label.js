@@ -117,12 +117,21 @@ function loadMenu() {
 
     if (hash.layout == "product") {
         header.textContent = "Product Layout";
+
         searchDiv.style.display = "none";
         searchResultsContainer.style.display = "none";
         menuContainer.style.display = "none";
+
+        const nav = document.getElementById("product-nav");
+        const view = document.getElementById("product-view");
+
+        if (nav) nav.innerHTML = "";
+        if (view) view.innerHTML = "";
+
         loadProductList();
         return;
     }
+
 
     addUSDASearchBar();
     loadFoodCategorySidebar();
